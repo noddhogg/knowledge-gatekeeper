@@ -1,0 +1,58 @@
+{
+  "_readme": [
+    "复制为 config.json 后填写。所有脚本应从本文件读取路径，不要硬编码绝对路径。",
+    "建议把 config.json 加入 .gitignore，只把本模板提交进版本库。"
+  ],
+
+  "kb_root": "在这里填知识库根目录的绝对路径",
+  "ledger": "$KB_ROOT/_meta/ledger.json",
+  "incoming": "$KB_ROOT/_incoming/",
+  "source_list": "在这里填素材清单路径，CSV 或 JSON 均可",
+
+  "paths": {
+    "_note": "以下均相对 kb_root，按需调整",
+    "meta": "_meta/",
+    "experts": "_meta/experts/",
+    "archive": "_archive/",
+    "assets": "assets/",
+    "index": "index.html"
+  },
+
+  "quality_gate": {
+    "_note": "四档定档。判据见 SKILL.md 3.1，low 与 reject 不入库。",
+    "tiers": ["high", "medium", "low", "reject"],
+    "default_on_unreviewed": "未定档的条目不得进入写页阶段"
+  },
+
+  "ledger_rules": {
+    "_note": "同一批次只允许一个进程写账本，并发写 JSON 会互相覆盖。",
+    "single_writer": true,
+    "skip_status_on_rerun": ["done"],
+    "pending_review_status": "transcribed"
+  },
+
+  "anti_loss": {
+    "_note": "未提交 = 不存在。详见 SKILL.md 3.3 的五条硬禁令。",
+    "commit_before_session_end": true,
+    "forbid_git_clean": true,
+    "forbid_git_reset_hard": true,
+    "daily_snapshot": true
+  },
+
+  "page_spec": {
+    "_note": "十一要素见 SKILL.md 第五节；两条硬纪律不使用 emoji、全部相对路径。",
+    "template": "templates/knowledge_page.html",
+    "toc_sections_range": [5, 9],
+    "forbid_emoji": true,
+    "relative_links_only": true
+  },
+
+  "acquisition": {
+    "_note": [
+      "获取与转写两层本仓库不提供实现。",
+      "不同平台有不同的获取方式和各自的服务条款，请自行实现并遵守对方规则。",
+      "推荐配合 take-notes / video2knowledge / video-to-notebook 等转化工具使用，",
+      "它们的产出（转写稿）即为本治理层的输入。"
+    ]
+  }
+}
