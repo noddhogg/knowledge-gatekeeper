@@ -172,20 +172,21 @@
 ## 快速开始
 
 1. 定好知识库根目录，记为 `$KB_ROOT`。
-2. 复制一份配置：
+
+2. 把 `SKILL.md` 放进你的 agent 的 skills 目录：
 
 ```bash
-cp config.example.json config.json
-# 填入 $KB_ROOT、账本路径、素材清单路径
-```
-
-3. 把 `SKILL.md` 放进你的 agent 的 skills 目录：
-
-```bash
+mkdir -p ~/.claude/skills/knowledge-gatekeeper
 cp SKILL.md ~/.claude/skills/knowledge-gatekeeper/SKILL.md
 ```
 
-4. 让 agent 读这个 skill，从「分流审查」开始接入你现有的转化流程。
+   其他 Agent Skills 宿主同理，把 `SKILL.md` 放到它读取 skills 的目录即可。
+
+3. 让 agent 读这个 skill，从「分流审查」开始接入你现有的转化流程。
+
+4. 自检：让 agent 复述四档判据和账本的六个字段。答得出来就说明加载成功。
+
+> **关于 `config.example.json`**：本仓库**不提供可执行脚本**，因此没有任何代码会去读取它。它是给"打算自己写脚本"的人准备的路径约定——你需要自己实现读取逻辑。只把 SKILL.md 交给 agent 使用的话，可以完全忽略这个文件。
 
 ---
 

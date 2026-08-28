@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="kb-template-version" content="1.1.0">
 <title>知识页标题</title>
 <style>
   :root {
@@ -210,7 +211,12 @@
   function nowStr(){ var d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
   function stamp(){ var d = new Date(); return '' + d.getFullYear() + pad(d.getMonth()+1) + pad(d.getDate()) + '_' + pad(d.getHours()) + pad(d.getMinutes()); }
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
-  function esc(s){ return String(s == null ? '' : s).replace(/[&<>]/g, function(c){ return c === '&' ? '&amp;' : c === '<' ? '&lt;' : '&gt;'; }); }
+  var ESC_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+  // 用于文本位置。属性值位置请另用 safeId() 限制字符集，不要依赖本函数。
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return ESC_MAP[c]; }); }
+  // 笔记 id 会进入 HTML 属性，必须限制字符集，否则外部写入的 localStorage 可造成属性注入
+  function safeId(s){ var t = String(s == null ? '' : s).replace(/[^a-zA-Z0-9]/g, ''); return (t.length && t.length <= 40) ? t : uid(); }
+  function storageOk(){ try { localStorage.setItem('__kb_probe__', '1'); localStorage.removeItem('__kb_probe__'); return true; } catch(e) { return false; } }
   function flash(msg){ flashEl.textContent = msg; flashEl.style.opacity = '1'; setTimeout(function(){ flashEl.style.opacity = '0'; }, 1800); }
   function pageTitle(){ return (document.title || '').trim() || '知识页'; }
 
@@ -218,12 +224,16 @@
     var raw = [];
     try { raw = JSON.parse(localStorage.getItem(KEY)) || []; } catch(e) { raw = []; }
     return raw.map(function(n){
-      return { lid: n.id || uid(), src: n.src || pageTitle(), status: (n.status === 'done' || n.status === '已解答') ? '已解答' : '待处理', ts: n.ts || nowStr(), text: n.text || '', answer: n.answer || '' };
+      return { lid: safeId(n.id), src: n.src || pageTitle(), status: (n.status === 'done' || n.status === '已解答') ? '已解答' : '待处理', ts: n.ts || nowStr(), text: n.text || '', answer: n.answer || '' };
     });
   }
+  // 返回是否写入成功。调用方必须据此提示，不能无条件显示"已保存"——
+  // localStorage 可能因容量耗尽、隐私模式或 file:// 限制而写入失败。
   function persist(){
-    try { localStorage.setItem(KEY, JSON.stringify(NOTES.map(function(n){ return { id: n.lid, text: n.text, src: n.src, ts: n.ts, status: n.status, answer: n.answer }; }))); } catch(e) {}
+    try { localStorage.setItem(KEY, JSON.stringify(NOTES.map(function(n){ return { id: n.lid, text: n.text, src: n.src, ts: n.ts, status: n.status, answer: n.answer }; }))); return true; }
+    catch(e) { return false; }
   }
+  var SAVE_FAIL = '保存失败：本地存储不可用或已满，请先导出备份';
   function findNote(id){ for (var i = 0; i < NOTES.length; i++) if (NOTES[i].lid === id) return NOTES[i]; return null; }
 
   function render(){
@@ -239,17 +249,18 @@
       var gp = items.filter(function(n){ return n.status !== '已解答'; }).length;
       html += '<div class="kb-group"><div class="kb-ghead"><span>' + esc(src) + '</span><span class="kb-gcount">' + items.length + ' 条 · ' + gp + ' 待处理</span></div>';
       items.forEach(function(n){
+        var nid = safeId(n.lid);
         html += '<div class="kb-item">'
           + '<div class="kb-meta"><span>' + esc(n.ts) + '</span><span class="kb-badge ' + (n.status === '已解答' ? 'done' : 'pending') + '">' + n.status + '</span></div>'
           + '<div class="kb-body">' + esc(n.text) + '</div>'
           + (n.answer ? '<div class="kb-answer"><b>答：</b>' + esc(n.answer) + '</div>' : '')
           + '<div class="kb-ops">'
-            + '<button data-act="toggle" data-id="' + n.lid + '">' + (n.status === '已解答' ? '标为待处理' : '标记已解答') + '</button>'
-            + '<button data-act="ans" data-id="' + n.lid + '">加/改答复</button>'
-            + '<button data-act="copy" data-id="' + n.lid + '">复制</button>'
-            + '<button data-act="del" data-id="' + n.lid + '">删除</button>'
+            + '<button data-act="toggle" data-id="' + nid + '">' + (n.status === '已解答' ? '标为待处理' : '标记已解答') + '</button>'
+            + '<button data-act="ans" data-id="' + nid + '">加/改答复</button>'
+            + '<button data-act="copy" data-id="' + nid + '">复制</button>'
+            + '<button data-act="del" data-id="' + nid + '">删除</button>'
           + '</div>'
-          + '<div class="kb-ansbox" id="ansbox-' + n.lid + '" style="display:none"><textarea class="kb-ans-ta" id="anta-' + n.lid + '">' + esc(n.answer || '') + '</textarea><button data-act="anssave" data-id="' + n.lid + '">保存答复</button></div>'
+          + '<div class="kb-ansbox" id="ansbox-' + nid + '" style="display:none"><textarea class="kb-ans-ta" id="anta-' + nid + '">' + esc(n.answer || '') + '</textarea><button data-act="anssave" data-id="' + nid + '">保存答复</button></div>'
         + '</div>';
       });
       html += '</div>';
@@ -288,11 +299,11 @@
     if (!b) return;
     var act = b.getAttribute('data-act'), id = b.getAttribute('data-id');
     var n = findNote(id); if (!n) return;
-    if (act === 'toggle') { n.status = (n.status === '已解答' ? '待处理' : '已解答'); render(); persist(); flash('已更新状态'); }
-    else if (act === 'del') { NOTES = NOTES.filter(function(x){ return x.lid !== id; }); render(); persist(); flash('已删除'); }
+    if (act === 'toggle') { n.status = (n.status === '已解答' ? '待处理' : '已解答'); render(); flash(persist() ? '已更新状态' : SAVE_FAIL); }
+    else if (act === 'del') { NOTES = NOTES.filter(function(x){ return x.lid !== id; }); render(); flash(persist() ? '已删除' : SAVE_FAIL); }
     else if (act === 'copy') { copyText(oneMd(n)).then(function(){ flash('已复制该条'); }, function(){ flash('复制失败'); }); }
-    else if (act === 'ans') { var box = document.getElementById('ansbox-' + id); if (box) box.style.display = (box.style.display === 'none' ? 'block' : 'none'); }
-    else if (act === 'anssave') { var ta = document.getElementById('anta-' + id); if (ta) { var v = ta.value.trim(); n.answer = v; n.status = v ? '已解答' : '待处理'; render(); persist(); flash('答复已保存'); } }
+    else if (act === 'ans') { var box = document.getElementById('ansbox-' + safeId(id)); if (box) box.style.display = (box.style.display === 'none' ? 'block' : 'none'); }
+    else if (act === 'anssave') { var ta = document.getElementById('anta-' + safeId(id)); if (ta) { var v = ta.value.trim(); n.answer = v; n.status = v ? '已解答' : '待处理'; render(); flash(persist() ? '答复已保存' : SAVE_FAIL); } }
   });
 
   toggle.onclick = function(){ panel.classList.toggle('open'); if (panel.classList.contains('open')) text.focus(); };
@@ -301,7 +312,11 @@
     var v = text.value.trim();
     if (!v) { text.focus(); flash('写点东西再保存'); return; }
     NOTES.unshift({ lid: uid(), src: pageTitle(), status: '待处理', ts: nowStr(), text: v, answer: '' });
-    render(); flash('已保存'); text.value = ''; persist();
+    var ok = persist();
+    render();
+    // 写失败就回滚，避免界面上有、存储里没有；输入内容保留，用户可直接导出
+    if (ok) { flash('已保存'); text.value = ''; }
+    else { NOTES.shift(); render(); flash(SAVE_FAIL); }
   };
   document.getElementById('kb-copy').onclick = function(){ var md = toMd(); if (!md) { flash('暂无笔记'); return; } copyText(md).then(function(){ flash('已复制全部笔记'); }, function(){ flash('复制失败，请用导出'); }); };
   document.getElementById('kb-export').onclick = function(){
@@ -320,6 +335,7 @@
 
   document.getElementById('kb-src').innerHTML = '当前页：<code>' + esc(pageTitle()) + '</code>';
   NOTES = load(); render();
+  if (!storageOk()) flash('本地存储不可用，笔记无法保存，请用导出备份');
 })();
 </script>
 
