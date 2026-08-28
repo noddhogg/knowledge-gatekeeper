@@ -11,6 +11,28 @@
 写进了 [`docs/platforms.md`](docs/platforms.md)——逐条核对提取器清单，
 并标明哪些是实测、哪些只是判断。
 
+<details>
+<summary><b>English summary</b>（本项目正文为中文）</summary>
+
+This project is written in Chinese. It is a **governance layer for personal
+knowledge bases**, sitting on top of whatever conversion tool you already use.
+It answers three questions: what deserves to go in, how to accumulate it
+incrementally, and how to never lose it.
+
+Core mechanisms: a four-tier quality gate, a page-generation gate (anti-padding),
+a single-ledger workflow, resumable runs, and an anti-loss loop.
+
+Two things to know before you start:
+
+- **`SKILL.md` is the canonical document.** The README is the front door;
+  `SKILL.md` is what an agent actually reads. It stays in Chinese.
+- **The numeric thresholds are calibrated for Chinese text.** The 800-character
+  floor, the 15% cross-page duplication cap, and the 8-gram similarity measure
+  all assume Chinese. For English and other spaced languages, count in words
+  and re-derive your own thresholds — the method transfers, the constants do not.
+
+</details>
+
 ---
 
 ## 为什么需要这一层
@@ -77,12 +99,18 @@
 | 项 | 数量 | 占比 |
 |---|---|---|
 | 进入管线的素材 | 93 | 100% |
-| 完成转写、进入定档 | 79 | 85% |
+| 完成转写 | 79 | 85% |
 | 定档通过，已入库 | 61 | 66% |
 | **定档否决，不予入库** | **20** | **21%** |
 | 仅有音频、尚未转写 | 12 | 13% |
 
-关键数字是**每四篇转写稿，就有一篇在定档环节被拦下**（20 / 79 ≈ 25%）。
+关键数字是**每四篇进入定档的素材，就有一篇被拦下**（20 / 81 ≈ 25%）。
+
+> **两个容易算错的地方，说明一下**：
+> 61 + 20 = 81，比「完成转写」的 79 多 2 —— 因为有 2 条素材**未经转写就被否决**
+> （标题与简介已足够判断不入库）。所以分母用 **81**（实际进入定档的条目数），
+> 不用 79（只是有转写稿的条数）；无转写稿的共 **14** 条（12 条 + 那 2 条）。
+> 用 20 / 79 会得到同样的 25%，但分子分母口径不一致，不严谨。
 
 这批内容如果照单全收，会和那 61 篇混在一起，无法区分，也不会再被清理——这正是转化工具单独使用时必然的结局。而由于账本记录了否决结果，它们不会被重复处理。
 
@@ -91,6 +119,10 @@
 四档门禁管的是**输入端**——这条素材值不值得进库。但**素材过关 ≠ 页面过关**。
 
 素材定档合规，成出来的页仍可能是废的。成页在流程第 ④ 层，同样需要门禁：
+
+> **别和「用法二」里的成文后定档搞混。** 两者位置相同，对象不同：
+> 用法二判的是**外部工具产出的笔记**，你只能整体接受或拒绝；
+> 这里判的是**你自己生成的页面**，不达标可以打回重写。
 
 | 指标 | 阈值 |
 |---|---|
@@ -275,8 +307,10 @@
    拿到清单后与账本对比，**只处理新增的**。
 
 2. **建账本**（建一次，之后一直用）
-   每条素材一行，核心字段 `id` / `source` / `status` / `quality` / `page`。
-   结构见 [`examples/ledger.schema.json`](examples/ledger.schema.json)。
+   每条素材一条记录，八个核心字段：`id` / `status` / `quality` / `media` /
+   `transcript` / `page` / `fail_reason` / `retry_count`。
+   完整定义（另有 `title` / `source_url` / `domain` 等）见
+   [`examples/ledger.schema.json`](examples/ledger.schema.json)。
 
 3. **转成文字**
    `yt-dlp -x` 取音轨，`faster-whisper` 转写。中文素材显式指定语言。
@@ -291,9 +325,9 @@
 
 **每一步都要回写账本**，这样"重跑命令"就等于"续跑命令"。
 
-真实节奏参考（一个跑了数月、两百余篇的中文知识库）：93 条素材 → 79 条完成转写 →
-**其中 20 条在定档被拦下（25%）** → 61 条入库。那 20 条如果照单全收，会和
-那 61 条混在一起，再也分不出来。
+真实节奏参考（一个跑了数月、两百余篇的中文知识库）：93 条素材 → **81 条进入定档 →
+其中 20 条被拦下（25%）** → 61 条入库。那 20 条如果照单全收，会和
+那 61 条混在一起，再也分不出来。字段口径见上文「实测：门禁拦掉了多少」。
 
 ### 路径 B：你已经有转化工具了
 
@@ -313,7 +347,7 @@ cp SKILL.md ~/.claude/skills/knowledge-gatekeeper/SKILL.md
 
    其他 Agent Skills 宿主同理，把 `SKILL.md` 放到它读取 skills 的目录即可。
 
-3. 自检：让 agent 复述四档判据和账本的六个字段。答得出来就说明加载成功。
+3. 自检：让 agent 复述四档判据和账本的八个核心字段。答得出来就说明加载成功。
 
 > 关于命令中的参数：`--flat-playlist`、`--skip-download`、`--cookies-from-browser`、`-x`
 > 均已确认存在于 `yt-dlp` 2026.06.09。但**命令形式是示意，不是复制即跑的脚本**——
@@ -342,7 +376,10 @@ cp SKILL.md ~/.claude/skills/knowledge-gatekeeper/SKILL.md
   该版本全库已有 **128 个条目被标注 `CURRENTLY BROKEN`**（其中 TikTok 占 3 个，已在清单中标出）。
   **数字是快照，不是承诺**——复核命令写在清单末尾，请自己跑一遍。
 - **未经外部验证。** 截至发布，这套方法只有原作者在用，还没有第二个使用者反馈。
-- **用法二的判据是推导的，不是实测的。** 「成文后入库前」那套判据（见上一节）是根据原始判据推导的适配版本，尚未在真实流程中跑过。用了发现不对，欢迎开 issue 纠正。
+- **用法二的判据是推导的，不是实测的。** 「成文后入库前」那套**四档定档判据**（见上文用法二）是根据原始判据推导的适配版本，尚未在真实流程中跑过。用了发现不对，欢迎开 issue 纠正。
+  它针对的是**外部工具产出的笔记**；「关于成页」那套三条硬指标针对的是**你自己生成的页面**，两者不是一回事。
+- **阈值以中文为基准。** 800 字 / 15% / 8-gram ≥50% 这些数字是在中文技术知识库上跑出来的经验值。
+  **英文等有空格分隔的语言要按词计并自行重设**，其他领域（诗歌、代码注释）同理。方法是通用的，常数不是。
 
 ---
 
@@ -350,16 +387,22 @@ cp SKILL.md ~/.claude/skills/knowledge-gatekeeper/SKILL.md
 
 ```
 knowledge-gatekeeper/
-├── README.md                    本文件
-├── SKILL.md                     给 agent 看的方法论内核，自包含
-├── config.example.json          配置模板
+├── README.md                    本文件，门面
+├── SKILL.md                     方法论内核，自包含。只交这一个文件给 agent 即可
+├── CHANGELOG.md                 版本记录（模板版本单独计，见该文件开头）
+├── CONTRIBUTING.md              贡献边界：接受什么、不接受什么
+├── LICENSE                      MIT
+├── config.example.json          路径约定示例，无任何代码读取（见文末说明）
 ├── docs/
 │   └── platforms.md             平台适配清单（实测，附复核命令）
 ├── templates/
-│   └── knowledge_page.html      单文件页面模板
+│   └── knowledge_page.html      单文件页面模板，头部注释含内容下限
 └── examples/
-    └── ledger.schema.json       账本结构定义与示例
+    ├── ledger.schema.json       账本结构定义与示例
+    └── sample-page.html         符合规范的成品页样例，可作对照
 ```
+
+> 只把 SKILL.md 放进 agent 的 skills 目录就能用，其余都是给人看的。
 
 ---
 
