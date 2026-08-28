@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知识页标题</title>
+<style>
+  :root {
+    --bg: #f7f8fa; --card: #ffffff; --text: #1f2329; --muted: #646a73; --line: #e5e6eb;
+    --brand: #2b6cb0; --brand-soft: #eaf2fb; --warn: #b7791f; --warn-soft: #fdf6e3;
+    --ok: #2f855a; --ok-soft: #eef7f0; --code-bg: #282c34; --code-text: #abb2bf; --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; line-height: 1.75; }
+  .topbar { background: var(--card); border-bottom: 1px solid var(--line); padding: 8px 24px; font-size: 13px; color: var(--muted); }
+  .topbar a { color: var(--brand); text-decoration: none; }
+  .topbar a:hover { text-decoration: underline; }
+  .container { max-width: 860px; margin: 0 auto; padding: 32px 24px 96px; }
+  header.meta { margin-bottom: 24px; }
+  h1 { font-size: 28px; line-height: 1.4; margin-bottom: 10px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .tag { font-size: 12px; padding: 2px 10px; border-radius: 999px; background: var(--brand-soft); color: var(--brand); }
+  .tag.diff { background: var(--ok-soft); color: var(--ok); }
+  .meta-line { font-size: 13px; color: var(--muted); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 24px; margin: 20px 0; }
+  .card h2 { font-size: 18px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .card h2 .no { font-size: 13px; background: var(--brand); color: #fff; width: 24px; height: 24px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .summary { background: var(--ok-soft); border-left: 4px solid var(--ok); border-radius: 6px; padding: 16px 20px; margin: 20px 0; font-size: 15px; }
+  .summary strong { color: var(--ok); }
+  nav#toc { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 24px; margin: 20px 0; font-size: 14px; }
+  nav#toc ul { list-style: none; }
+  nav#toc ul ul { padding-left: 20px; }
+  nav#toc a { color: var(--brand); text-decoration: none; }
+  nav#toc a:hover { text-decoration: underline; }
+  h3 { font-size: 17px; margin: 24px 0 10px; }
+  p { margin: 10px 0; }
+  ul, ol { margin: 10px 0 10px 24px; }
+  li { margin: 4px 0; }
+  pre { background: var(--code-bg); color: var(--code-text); border-radius: 8px; padding: 14px 16px; font-family: "Cascadia Code", Consolas, monospace; font-size: 13px; line-height: 1.6; overflow-x: auto; margin: 12px 0; }
+  code.inline { background: var(--brand-soft); color: var(--brand); padding: 1px 6px; border-radius: 4px; font-family: "Cascadia Code", Consolas, monospace; font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
+  th, td { border: 1px solid var(--line); padding: 8px 12px; text-align: left; }
+  th { background: var(--brand-soft); color: var(--brand); font-weight: 600; }
+  tr:nth-child(even) td { background: #fafbfc; }
+  .callout { border-radius: 8px; padding: 12px 16px; margin: 14px 0; font-size: 14px; }
+  .callout.warn { background: var(--warn-soft); border-left: 4px solid var(--warn); }
+  .callout.tip { background: var(--brand-soft); border-left: 4px solid var(--brand); }
+  details { border: 1px solid var(--line); border-radius: 8px; margin: 8px 0; background: var(--card); }
+  details summary { cursor: pointer; padding: 12px 16px; font-weight: 600; font-size: 14px; list-style: none; }
+  details summary::before { content: "▸ "; color: var(--brand); }
+  details[open] summary::before { content: "▾ "; }
+  details .qa-body { padding: 0 16px 14px; font-size: 14px; }
+  footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+
+  /* ---- 笔记组件 ---- */
+  #kb-toggle, #kb-panel, #kb-panel * { -webkit-tap-highlight-color: transparent; }
+  #kb-toggle { position: fixed; left: 16px; bottom: 16px; z-index: 9998; width: 48px; height: 48px; border: none; border-radius: 50%; background: #2b6cb0; color: #fff; font-size: 14px; cursor: pointer; box-shadow: 0 6px 18px rgba(30,60,120,.32); display: flex; align-items: center; justify-content: center; }
+  #kb-toggle .badge { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: #e0322e; color: #fff; font-size: 11px; line-height: 18px; text-align: center; }
+  #kb-panel { position: fixed; left: 16px; bottom: 72px; z-index: 9999; width: 360px; max-width: calc(100vw - 32px); max-height: 76vh; background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 12px 40px rgba(20,30,60,.18); display: none; flex-direction: column; overflow: hidden; font-family: inherit; }
+  #kb-panel.open { display: flex; }
+  .kb-head { padding: 11px 14px; border-bottom: 1px solid #eef0f3; display: flex; align-items: center; gap: 8px; }
+  .kb-head b { font-size: 14px; flex: 1; }
+  .kb-head .kb-close { border: none; background: transparent; font-size: 18px; cursor: pointer; color: var(--muted); }
+  .kb-flash { font-size: 11px; color: var(--brand); opacity: 0; transition: opacity .3s; white-space: nowrap; }
+  .kb-src { font-size: 11.5px; color: var(--muted); padding: 6px 14px 0; }
+  .kb-src code { background: #f2f3f5; padding: 1px 6px; border-radius: 5px; font-size: 11px; }
+  #kb-text { width: 100%; min-height: 64px; resize: vertical; border: 1px solid var(--line); border-radius: 9px; padding: 9px 10px; margin: 8px 14px; font-size: 13px; font-family: inherit; box-sizing: border-box; width: calc(100% - 28px); }
+  #kb-text:focus { border-color: var(--brand); outline: none; }
+  .kb-actions { display: flex; gap: 6px; padding: 0 14px 10px; flex-wrap: wrap; }
+  .kb-actions button { flex: 1; min-width: 64px; border: 1px solid var(--line); background: var(--bg); color: var(--text); border-radius: 8px; padding: 7px 6px; font-size: 12px; cursor: pointer; }
+  .kb-actions button.kb-save { background: var(--brand); color: #fff; border-color: var(--brand); }
+  .kb-list { overflow-y: auto; padding: 4px 14px 12px; border-top: 1px solid #eef0f3; }
+  .kb-empty { color: var(--muted); font-size: 12px; text-align: center; padding: 16px 0; }
+  .kb-group { margin-bottom: 10px; }
+  .kb-ghead { font-size: 12px; font-weight: 600; color: var(--brand); margin: 6px 0 4px; display: flex; justify-content: space-between; gap: 8px; }
+  .kb-gcount { font-weight: 400; color: var(--muted); font-size: 11px; }
+  .kb-item { background: var(--bg); border: 1px solid #eef0f3; border-radius: 9px; padding: 8px 10px; margin-bottom: 8px; font-size: 12.5px; }
+  .kb-item .kb-meta { color: var(--muted); font-size: 11px; margin-bottom: 3px; display: flex; justify-content: space-between; gap: 8px; }
+  .kb-badge { display: inline-block; font-size: 10.5px; padding: 1px 7px; border-radius: 999px; }
+  .kb-badge.pending { background: #fdf0e6; color: var(--warn); }
+  .kb-badge.done { background: var(--ok-soft); color: var(--ok); }
+  .kb-body { white-space: pre-wrap; word-break: break-word; line-height: 1.55; }
+  .kb-answer { margin-top: 6px; padding: 7px 9px; background: #f3edfd; border-left: 3px solid #7c3aed; border-radius: 6px; font-size: 12px; white-space: pre-wrap; }
+  .kb-ops { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+  .kb-ops button { border: 1px solid var(--line); background: #fff; color: var(--text); border-radius: 7px; padding: 4px 8px; font-size: 11px; cursor: pointer; }
+  .kb-ansbox { margin-top: 6px; }
+  .kb-ans-ta { width: 100%; min-height: 42px; border: 1px solid var(--line); border-radius: 7px; padding: 6px 8px; font-size: 12px; font-family: inherit; box-sizing: border-box; }
+  @media (max-width: 640px) {
+    .container { padding: 24px 16px 96px; }
+    h1 { font-size: 24px; }
+    #kb-panel { left: 0; right: 0; bottom: 0; width: auto; max-width: 100%; border-radius: 16px 16px 0 0; border-left: none; border-right: none; border-bottom: none; max-height: 82vh; padding-bottom: env(safe-area-inset-bottom, 0px); }
+    #kb-panel.open ~ #kb-toggle { display: none; }
+    #kb-toggle { left: 14px; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); width: 52px; height: 52px; }
+    #kb-text { font-size: 16px; min-height: 80px; }
+    .kb-actions button { min-height: 42px; font-size: 13px; }
+    .kb-ops button { min-height: 38px; padding: 8px 12px; font-size: 12.5px; flex: 1 1 auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">&larr; <a href="../../index.html">返回知识库索引</a> ｜ 知识库 / <a href="../index.html">本域</a></div>
+
+<div class="container">
+
+<header class="meta">
+  <h1>知识页标题</h1>
+  <div class="tags">
+    <span class="tag">标签一</span>
+    <span class="tag">标签二</span>
+    <span class="tag diff">难度 ★★☆</span>
+  </div>
+  <div class="meta-line">学习日期：YYYY-MM-DD ｜ 素材来源：来源名称 ｜ 预计阅读：N 分钟</div>
+</header>
+
+<div class="summary">
+  <strong>一句话总结：</strong>用一到两句话讲清这篇的核心结论。读者只看这一块也要有收获。
+</div>
+
+<nav id="toc">
+  <strong>知识地图</strong>
+  <ul>
+    <li><a href="#s1">1. 节标题</a></li>
+    <li><a href="#s2">2. 节标题</a></li>
+    <li><a href="#s3">3. 节标题</a></li>
+    <li><a href="#s4">4. 易混点与误区</a></li>
+    <li><a href="#s5">5. 自测题</a></li>
+  </ul>
+</nav>
+
+<div class="card" id="s1">
+  <h2><span class="no">1</span>节标题</h2>
+  <p>正文段落。可以穿插 <code class="inline">行内代码</code> 或列表：</p>
+  <ul>
+    <li>要点一</li>
+    <li>要点二</li>
+  </ul>
+</div>
+
+<div class="card" id="s2">
+  <h2><span class="no">2</span>节标题</h2>
+  <table>
+    <tr><th>对比维度</th><th>方案 A</th><th>方案 B</th></tr>
+    <tr><td>维度一</td><td></td><td></td></tr>
+    <tr><td>维度二</td><td></td><td></td></tr>
+  </table>
+  <div class="callout tip"><strong>提示：</strong>并列概念优先用表格，比段落高效得多。</div>
+</div>
+
+<div class="card" id="s3">
+  <h2><span class="no">3</span>节标题</h2>
+  <p>正文段落。</p>
+  <div class="callout warn"><strong>注意：</strong>需要读者特别留意的地方。</div>
+</div>
+
+<div class="card" id="s4">
+  <h2><span class="no">4</span>易混点与误区</h2>
+  <table>
+    <tr><th>常见误区</th><th>真相</th></tr>
+    <tr><td>误区一</td><td></td></tr>
+    <tr><td>误区二</td><td></td></tr>
+  </table>
+</div>
+
+<div class="card" id="s5">
+  <h2><span class="no">5</span>自测题（点击展开答案）</h2>
+  <details>
+    <summary>Q1：考理解或应用，不要考日期、作者这类元信息</summary>
+    <div class="qa-body">答案与解析。</div>
+  </details>
+  <details>
+    <summary>Q2：题目</summary>
+    <div class="qa-body">答案与解析。</div>
+  </details>
+</div>
+
+<footer>
+  由 AI 辅助整理 ｜ 素材来源：来源名称 ｜ 本文档单文件可离线阅读
+</footer>
+
+</div>
+
+<!-- KB_NOTE_WIDGET：本地笔记抽屉，数据存 localStorage，可导出 Markdown 交给 agent 处理。
+     如需跨设备同步，把 persist / load 两处替换为你的后端接口即可。 -->
+<div id="kb-panel">
+  <div class="kb-head"><b>我的笔记</b><span class="kb-flash" id="kb-flash"></span><button class="kb-close" id="kb-close" title="收起">&times;</button></div>
+  <div class="kb-src" id="kb-src"></div>
+  <textarea id="kb-text" placeholder="遇到不懂的地方先写下来，事后交给 agent 处理…"></textarea>
+  <div class="kb-actions">
+    <button class="kb-save" id="kb-save">保存笔记</button>
+    <button id="kb-copy">复制全部</button>
+    <button id="kb-export">导出 .md</button>
+  </div>
+  <div class="kb-list" id="kb-list"></div>
+</div>
+<button id="kb-toggle" title="我的笔记">笔记<span class="badge" id="kb-badge" style="display:none">0</span></button>
+
+<script>
+(function(){
+  var KEY = 'kb_notes_v1';
+  var panel = document.getElementById('kb-panel');
+  var toggle = document.getElementById('kb-toggle');
+  var list = document.getElementById('kb-list');
+  var text = document.getElementById('kb-text');
+  var badge = document.getElementById('kb-badge');
+  var flashEl = document.getElementById('kb-flash');
+  var NOTES = [];
+
+  function pad(n){ return n < 10 ? '0' + n : '' + n; }
+  function nowStr(){ var d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  function stamp(){ var d = new Date(); return '' + d.getFullYear() + pad(d.getMonth()+1) + pad(d.getDate()) + '_' + pad(d.getHours()) + pad(d.getMinutes()); }
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>]/g, function(c){ return c === '&' ? '&amp;' : c === '<' ? '&lt;' : '&gt;'; }); }
+  function flash(msg){ flashEl.textContent = msg; flashEl.style.opacity = '1'; setTimeout(function(){ flashEl.style.opacity = '0'; }, 1800); }
+  function pageTitle(){ return (document.title || '').trim() || '知识页'; }
+
+  function load(){
+    var raw = [];
+    try { raw = JSON.parse(localStorage.getItem(KEY)) || []; } catch(e) { raw = []; }
+    return raw.map(function(n){
+      return { lid: n.id || uid(), src: n.src || pageTitle(), status: (n.status === 'done' || n.status === '已解答') ? '已解答' : '待处理', ts: n.ts || nowStr(), text: n.text || '', answer: n.answer || '' };
+    });
+  }
+  function persist(){
+    try { localStorage.setItem(KEY, JSON.stringify(NOTES.map(function(n){ return { id: n.lid, text: n.text, src: n.src, ts: n.ts, status: n.status, answer: n.answer }; }))); } catch(e) {}
+  }
+  function findNote(id){ for (var i = 0; i < NOTES.length; i++) if (NOTES[i].lid === id) return NOTES[i]; return null; }
+
+  function render(){
+    var pend = NOTES.filter(function(n){ return n.status !== '已解答'; }).length;
+    badge.style.display = pend ? 'flex' : 'none';
+    badge.textContent = pend;
+    if (!NOTES.length) { list.innerHTML = '<div class="kb-empty">还没有笔记。遇到不懂的先写下来，事后交 agent 处理。</div>'; return; }
+    var groups = {};
+    NOTES.forEach(function(n){ (groups[n.src] = groups[n.src] || []).push(n); });
+    var html = '';
+    Object.keys(groups).forEach(function(src){
+      var items = groups[src];
+      var gp = items.filter(function(n){ return n.status !== '已解答'; }).length;
+      html += '<div class="kb-group"><div class="kb-ghead"><span>' + esc(src) + '</span><span class="kb-gcount">' + items.length + ' 条 · ' + gp + ' 待处理</span></div>';
+      items.forEach(function(n){
+        html += '<div class="kb-item">'
+          + '<div class="kb-meta"><span>' + esc(n.ts) + '</span><span class="kb-badge ' + (n.status === '已解答' ? 'done' : 'pending') + '">' + n.status + '</span></div>'
+          + '<div class="kb-body">' + esc(n.text) + '</div>'
+          + (n.answer ? '<div class="kb-answer"><b>答：</b>' + esc(n.answer) + '</div>' : '')
+          + '<div class="kb-ops">'
+            + '<button data-act="toggle" data-id="' + n.lid + '">' + (n.status === '已解答' ? '标为待处理' : '标记已解答') + '</button>'
+            + '<button data-act="ans" data-id="' + n.lid + '">加/改答复</button>'
+            + '<button data-act="copy" data-id="' + n.lid + '">复制</button>'
+            + '<button data-act="del" data-id="' + n.lid + '">删除</button>'
+          + '</div>'
+          + '<div class="kb-ansbox" id="ansbox-' + n.lid + '" style="display:none"><textarea class="kb-ans-ta" id="anta-' + n.lid + '">' + esc(n.answer || '') + '</textarea><button data-act="anssave" data-id="' + n.lid + '">保存答复</button></div>'
+        + '</div>';
+      });
+      html += '</div>';
+    });
+    list.innerHTML = html;
+  }
+
+  function copyText(t){
+    if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(t);
+    return new Promise(function(res, rej){
+      try {
+        var ta = document.createElement('textarea');
+        ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+        document.body.removeChild(ta); res();
+      } catch(e) { rej(e); }
+    });
+  }
+  function oneMd(n){ return '【' + n.status + '】' + n.src + '\n问：' + n.text + (n.answer ? '\n答：' + n.answer : ''); }
+  function toMd(){
+    if (!NOTES.length) return '';
+    var pend = NOTES.filter(function(n){ return n.status !== '已解答'; }).length;
+    var L = ['# 知识页笔记（待处理）', '', '> 导出时间：' + nowStr() + '　共 ' + NOTES.length + ' 条（待处理 ' + pend + '）', ''];
+    NOTES.forEach(function(n, i){
+      L.push('## ' + (i + 1) + '. [' + n.status + '] ' + n.src);
+      L.push(''); L.push('> 记录于 ' + n.ts); L.push('');
+      L.push('**问：** ' + n.text);
+      if (n.answer) { L.push(''); L.push('**答：** ' + n.answer); }
+      L.push(''); L.push('---'); L.push('');
+    });
+    return L.join('\n');
+  }
+
+  list.addEventListener('click', function(e){
+    var b = e.target.closest ? e.target.closest('button[data-act]') : null;
+    if (!b) return;
+    var act = b.getAttribute('data-act'), id = b.getAttribute('data-id');
+    var n = findNote(id); if (!n) return;
+    if (act === 'toggle') { n.status = (n.status === '已解答' ? '待处理' : '已解答'); render(); persist(); flash('已更新状态'); }
+    else if (act === 'del') { NOTES = NOTES.filter(function(x){ return x.lid !== id; }); render(); persist(); flash('已删除'); }
+    else if (act === 'copy') { copyText(oneMd(n)).then(function(){ flash('已复制该条'); }, function(){ flash('复制失败'); }); }
+    else if (act === 'ans') { var box = document.getElementById('ansbox-' + id); if (box) box.style.display = (box.style.display === 'none' ? 'block' : 'none'); }
+    else if (act === 'anssave') { var ta = document.getElementById('anta-' + id); if (ta) { var v = ta.value.trim(); n.answer = v; n.status = v ? '已解答' : '待处理'; render(); persist(); flash('答复已保存'); } }
+  });
+
+  toggle.onclick = function(){ panel.classList.toggle('open'); if (panel.classList.contains('open')) text.focus(); };
+  document.getElementById('kb-close').onclick = function(){ panel.classList.remove('open'); };
+  document.getElementById('kb-save').onclick = function(){
+    var v = text.value.trim();
+    if (!v) { text.focus(); flash('写点东西再保存'); return; }
+    NOTES.unshift({ lid: uid(), src: pageTitle(), status: '待处理', ts: nowStr(), text: v, answer: '' });
+    render(); flash('已保存'); text.value = ''; persist();
+  };
+  document.getElementById('kb-copy').onclick = function(){ var md = toMd(); if (!md) { flash('暂无笔记'); return; } copyText(md).then(function(){ flash('已复制全部笔记'); }, function(){ flash('复制失败，请用导出'); }); };
+  document.getElementById('kb-export').onclick = function(){
+    var md = toMd(); if (!md) { flash('暂无笔记'); return; }
+    try {
+      var a = document.createElement('a');
+      if (typeof a.download === 'undefined') throw new Error('no download attr');
+      var blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+      a.href = URL.createObjectURL(blob); a.download = '知识页笔记_' + stamp() + '.md';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(a.href);
+      flash('已导出 .md');
+    } catch(e) {
+      copyText(md).then(function(){ flash('该浏览器不支持下载，已改为复制'); }, function(){ flash('导出与复制均失败'); });
+    }
+  };
+
+  document.getElementById('kb-src').innerHTML = '当前页：<code>' + esc(pageTitle()) + '</code>';
+  NOTES = load(); render();
+})();
+</script>
+
+</body>
+</html>

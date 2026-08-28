@@ -1,0 +1,101 @@
+{
+  "_readme": [
+    "账本是整条管线的单一事实源。本文件同时给出结构定义与一个填充示例。",
+    "硬约束：同一批次只允许一个进程写这个文件。并发写 JSON 会互相覆盖。",
+    "用法：把 example 节点复制为你的 $LEDGER 初始内容，schema 节点作为字段校验依据。"
+  ],
+
+  "schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["version", "items"],
+    "properties": {
+      "version": { "type": "string", "description": "结构版本号，结构变更时递增" },
+      "updated_at": { "type": "string", "description": "最后写入时间，ISO 8601" },
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["id", "title", "status"],
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "素材唯一标识，整条管线的主键。注意区分短 id 与完整 id。"
+            },
+            "title": { "type": "string" },
+            "source_url": { "type": "string" },
+            "domain": {
+              "type": "string",
+              "description": "归属域，对应 $KB_ROOT 下的 <NN_域> 目录名"
+            },
+            "status": {
+              "type": "string",
+              "enum": ["pending", "working", "transcribed", "done", "failed"],
+              "description": "pending 待获取 / working 获取或转写中 / transcribed 已转写待定档 / done 已入库或已判定不入 / failed 失败待重试"
+            },
+            "quality": {
+              "type": "string",
+              "enum": ["", "high", "medium", "low", "reject"],
+              "description": "由 D 阶段质量门禁写入。空串表示尚未定档。"
+            },
+            "media": { "type": "string", "description": "媒体文件路径，相对 $KB_ROOT" },
+            "transcript": { "type": "string", "description": "转写稿路径，相对 $KB_ROOT" },
+            "page": { "type": "string", "description": "成页路径，相对 $KB_ROOT。low / reject 时留空。" },
+            "fail_reason": { "type": "string" },
+            "retry_count": { "type": "integer", "minimum": 0 },
+            "updated_at": { "type": "string" }
+          }
+        }
+      }
+    }
+  },
+
+  "example": {
+    "version": "1.0",
+    "updated_at": "2026-08-28T16:00:00+08:00",
+    "items": [
+      {
+        "id": "SRC-20260820-001",
+        "title": "某个讲清楚的体系化教程",
+        "source_url": "https://example.com/item/001",
+        "domain": "01_示例域",
+        "status": "done",
+        "quality": "high",
+        "media": "_incoming/media/SRC-20260820-001.mp4",
+        "transcript": "_incoming/trans/SRC-20260820-001.trans.txt",
+        "page": "01_示例域/某个主题/2026-08-20_某个讲清楚的体系化教程.html",
+        "fail_reason": "",
+        "retry_count": 0,
+        "updated_at": "2026-08-21T10:12:00+08:00"
+      },
+      {
+        "id": "SRC-20260820-002",
+        "title": "标题很唬人但内容空洞的一期",
+        "source_url": "https://example.com/item/002",
+        "domain": "01_示例域",
+        "status": "done",
+        "quality": "low",
+        "media": "_incoming/media/SRC-20260820-002.mp4",
+        "transcript": "_incoming/trans/SRC-20260820-002.trans.txt",
+        "page": "",
+        "fail_reason": "标题与内容不一致，中后段为引流广告",
+        "retry_count": 0,
+        "updated_at": "2026-08-21T10:40:00+08:00"
+      },
+      {
+        "id": "SRC-20260820-003",
+        "title": "下载失败待重试的一条",
+        "source_url": "https://example.com/item/003",
+        "domain": "",
+        "status": "failed",
+        "quality": "",
+        "media": "",
+        "transcript": "",
+        "page": "",
+        "fail_reason": "获取阶段超时",
+        "retry_count": 2,
+        "updated_at": "2026-08-21T11:03:00+08:00"
+      }
+    ]
+  }
+}
