@@ -37,10 +37,10 @@
 | 平台 | 类型 | 提取器数 | 主要入口（能力） | 限制 |
 |---|---|---|---|---|
 | **B 站** `bilibili` | 视频 | 19 | 单视频 `BiliBili`、收藏夹 `BilibiliFavoritesList`、稍后再看 `BilibiliWatchlater`、UP 主投稿 `BilibiliSpaceVideo` / 音频 `BilibiliSpaceAudio`、合集 `BilibiliCollectionList` / 系列 `BilibiliSeriesList`、搜索 `BiliBiliSearch`、分类 `Bilibili category extractor`、动态 `BiliBiliDynamic`、番剧 `BiliBiliBangumi`（含 season / media）、音频 `BilibiliAudio`（含 album）、播放器 `BiliBiliPlayer`、播放列表 `BilibiliPlaylist` | 收藏夹 / 稍后再看 / 动态 **需登录**；`BilibiliCheese` 与 `BilibiliCheeseSeason` 是**付费课堂**，见红线 3 |
-| **抖音** `douyin` | 短视频 | 1 | 单条视频 `Douyin` | 只有单条入口，无收藏夹 / 主页；风控较严，易触发限制，见红线 2 |
-| **小红书** `xiaohongshu` | 图文 / 短视频 | 1 | 单篇 `XiaoHongShu` | 只有单篇入口；需登录态，失败率高 |
+| **抖音** `douyin` | 短视频 | 1 | 单条视频 `Douyin`，匹配 `douyin.com/video/<id>` | 只有单条入口，无收藏夹 / 主页；风控较严，易触发限制，见红线 2 |
+| **小红书** `xiaohongshu` | 短视频 | 1 | 单篇 `XiaoHongShu`，匹配 `xiaohongshu.com/explore/<id>` 与 `/discovery/item/<id>` | 只有单篇入口；产出为视频，**图文笔记不在范围内**；需登录态，失败率高 |
 | **微博** `weibo` | 视频 | 3 | 单条 `WeiboVideo`、用户 `WeiboUser`、主站 `Weibo` | 主页类入口需登录 |
-| **知乎** `zhihu` | 视频 / 回答 | 1 | 单条 `Zhihu` | 只有单条入口；**回答与文章正文不属于 yt-dlp 的能力范围**，那是网页抓取，本仓库不涉及 |
+| **知乎** `zhihu` | 视频 | 1 | 仅 `zhihu.com/zvideo/<id>`（知乎视频） | **只匹配视频，回答与文章正文不在范围内**——那是网页抓取，本仓库不涉及 |
 | **优酷** `youku` | 长视频 | 2 | 单视频 `youku`、节目 `youku:show` | 会员内容需登录，见红线 3 |
 | **爱奇艺** `iqiyi` | 长视频 | 1 | 单视频 `iqiyi` | 会员内容需登录，见红线 3 |
 | **腾讯视频** `vqq` | 长视频 | 2 | 单视频 `vqq:video`、剧集 `vqq:series` | 会员内容需登录，见红线 3 |
@@ -123,7 +123,18 @@ yt-dlp --list-extractors | grep -i "^bilibili"
 
 # 查某平台是否损坏（yt-dlp 会直接标注）
 yt-dlp --list-extractors | grep -i "^tiktok" | grep -i BROKEN
+
+# 官方描述（部分提取器没有描述，此时看源码最准）
+yt-dlp --extractor-descriptions | grep -i "^Zhihu"
+
+# 查某提取器到底匹配哪些 URL —— 判断"能不能接"的最终依据
+grep -A2 "_VALID_URL" "$(python -c 'import yt_dlp,os;print(os.path.dirname(yt_dlp.__file__))')/extractor/zhihu.py"
 ```
+
+> **能力栏怎么写才不会错**：从提取器名与 `_VALID_URL` 正则**直读**，不要靠印象。
+> 本文在核对时就靠这一条抓出了三处错：Vimeo 没有「影集 / 系列」、
+> SoundCloud 没有「专辑 / 标签」、Twitter 没有「时间线 / 社区」——
+> 三者都是凭印象写出来的，实际入口完全不同。
 
 **计数口径**（重要，否则对不上数）：按**提取器名前缀**统计。
 两个易错的例外：
