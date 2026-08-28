@@ -184,6 +184,30 @@
 
 ---
 
+## 相关工具
+
+本仓库不实现获取与转写。下面是各自独立的第三方项目，**我们不维护，也不为其背书**——列出来只为省你搜索的时间。链接可能变动，失效了欢迎开 issue 告知。
+
+### 自己搭管线时（层 ① ②）
+
+| 用途 | 工具 | 说明 |
+|---|---|---|
+| 下载媒体 | [yt-dlp](https://github.com/yt-dlp/yt-dlp) | 命令行音视频下载，支持的站点极广 |
+| 语音转文字 | [faster-whisper](https://github.com/SYSTRAN/faster-whisper) | CTranslate2 加速的 Whisper，本地推理，无 GPU 也能跑 |
+
+### 端到端转化（层 ① 到 ④ 一把做完）
+
+| 工具 | 特点 | 产出 |
+|---|---|---|
+| [take-notes](https://github.com/davertor/take-notes) | Agent Skill，装进 Claude Code / Codex / Cursor 等宿主即可用 | HTML 笔记，可导出 Markdown 与 Anki |
+| [video2knowledge](https://github.com/yc-w-cn/video2knowledge) | Agent Skill，三条本地推理路径（VLM 多模态 / ASR / 音画融合） | 时间戳字幕、知识文档、图文笔记、Anki 卡片 |
+| [video-to-notebook](https://github.com/LinZhuoChen/video-to-notebook) | 把整套课程合成为一本笔记本 | 静态站点（教科书 + 概念百科） |
+| [weixin-favor-kb](https://github.com/dlv2008/weixin-favor-kb) | 面向微信视频号收藏 | Obsidian 知识库 |
+
+**怎么选**：想尽快跑通，用 `take-notes` 或 `video2knowledge`——它们与本仓库同为 Agent Skill 形态，安装方式一致，装完即可配合本仓库的门禁使用。
+
+---
+
 ## 快速开始
 
 1. 定好知识库根目录，记为 `$KB_ROOT`。
