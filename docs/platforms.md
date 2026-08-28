@@ -9,6 +9,25 @@
 
 ---
 
+## 先说清「实测」测到了哪一层
+
+免得你对这份清单抱有它给不了的信心：
+
+| 内容 | 怎么来的 | 可信度 |
+|---|---|---|
+| 提取器**数量**（1747 / B站19 / YouTube20…） | 本机 `yt-dlp --list-extractors` 导出后计数 | **实测**，命令在文末，可复现 |
+| 平台有**哪些入口**（收藏夹 / 搜索 / 专辑…） | 从提取器名称与源码里的 `_VALID_URL` 正则直读 | 高，但不是逐个点开验证 |
+| **下载是否真能成功** | **没测过——一个平台都没真下过** | **无** |
+| 「限制」栏里的"需登录 / 风控严 / 失败率高" | 一部分从入口名推得（如 `favoriteslist` 必然要登录态），另一部分是**经验判断** | 中；**判断项在下表用「（判断）」标出** |
+
+所以本文的「支持」= **yt-dlp 里存在该平台的提取器**，
+**不等于**作者在真实网络环境下下载成功过。提取器存在也可能因风控、地域、
+站点改版、登录态失效而失败——yt-dlp 自己就在这一版标注了 **128 个 `CURRENTLY BROKEN`**。
+
+**要用，就先拿一条真实链接试。**
+
+---
+
 ## 三条红线
 
 没有边界的"广泛"就是下限失守。这三条不是自我设限，是专业性。
@@ -37,8 +56,8 @@
 | 平台 | 类型 | 提取器数 | 主要入口（能力） | 限制 |
 |---|---|---|---|---|
 | **B 站** `bilibili` | 视频 | 19 | 单视频 `BiliBili`、收藏夹 `BilibiliFavoritesList`、稍后再看 `BilibiliWatchlater`、UP 主投稿 `BilibiliSpaceVideo` / 音频 `BilibiliSpaceAudio`、合集 `BilibiliCollectionList` / 系列 `BilibiliSeriesList`、搜索 `BiliBiliSearch`、分类 `Bilibili category extractor`、动态 `BiliBiliDynamic`、番剧 `BiliBiliBangumi`（含 season / media）、音频 `BilibiliAudio`（含 album）、播放器 `BiliBiliPlayer`、播放列表 `BilibiliPlaylist` | 收藏夹 / 稍后再看 / 动态 **需登录**；`BilibiliCheese` 与 `BilibiliCheeseSeason` 是**付费课堂**，见红线 3 |
-| **抖音** `douyin` | 短视频 | 1 | 单条视频 `Douyin`，匹配 `douyin.com/video/<id>` | 只有单条入口，无收藏夹 / 主页；风控较严，易触发限制，见红线 2 |
-| **小红书** `xiaohongshu` | 短视频 | 1 | 单篇 `XiaoHongShu`，匹配 `xiaohongshu.com/explore/<id>` 与 `/discovery/item/<id>` | 只有单篇入口；产出为视频，**图文笔记不在范围内**；需登录态，失败率高 |
+| **抖音** `douyin` | 短视频 | 1 | 单条视频 `Douyin`，匹配 `douyin.com/video/<id>` | 只有单条入口，无收藏夹 / 主页；**风控较严、易触发限制（判断）**，见红线 2 |
+| **小红书** `xiaohongshu` | 短视频 | 1 | 单篇 `XiaoHongShu`，匹配 `xiaohongshu.com/explore/<id>` 与 `/discovery/item/<id>` | 只有单篇入口；产出为视频，**图文笔记不在范围内**；**需登录态、失败率高（判断）** |
 | **微博** `weibo` | 视频 | 3 | 单条 `WeiboVideo`、用户 `WeiboUser`、主站 `Weibo` | 主页类入口需登录 |
 | **知乎** `zhihu` | 视频 | 1 | 仅 `zhihu.com/zvideo/<id>`（知乎视频） | **只匹配视频，回答与文章正文不在范围内**——那是网页抓取，本仓库不涉及 |
 | **优酷** `youku` | 长视频 | 2 | 单视频 `youku`、节目 `youku:show` | 会员内容需登录，见红线 3 |
@@ -68,7 +87,7 @@
 | **TikTok** `tiktok` | 短视频 | 7 | 单条 `TikTok`、用户 `tiktok:user`、合集 `tiktok:collection`、直播 `tiktok:live`；短链 `vm.tiktok` 另有独立条目 | **`tiktok:effect` / `tiktok:sound` / `tiktok:tag` 三个在 yt-dlp 中标注 CURRENTLY BROKEN**，不要用 |
 | **Vimeo** `vimeo` | 视频 | 11 | 单视频 `vimeo`、频道 `vimeo:channel`、专辑 `vimeo:album`、用户 `vimeo:user`、稍后再看 `vimeo:watchlater`、喜欢 `vimeo:likes`、活动 `vimeo:event`、群组 `vimeo:group`、审查页 `vimeo:review`、Pro `vimeo:pro`、点播 `vimeo:ondemand` | 稍后再看 / 喜欢需登录；`vimeo:ondemand` 是**付费点播**，见红线 3；部分内容需密码 |
 | **SoundCloud** `soundcloud` | 音频 | 9 | 单曲 `soundcloud`、歌单 `soundcloud:playlist` / `soundcloud:set`、用户 `soundcloud:user`（含 `soundcloud:user:permalink`）、搜索 `soundcloud:search`、相关推荐 `soundcloud:related`、电台 `soundcloud:trackstation`、嵌入 `SoundcloudEmbed` | 需登录的内容见红线 3 |
-| **Twitter / X** `twitter` | 视频 / 图文 | 6 | 单条 `twitter`、卡片 `twitter:card`、语音 Spaces `twitter:spaces`、广播 `twitter:broadcast`、Amplify `twitter:amplify`、短链 `twitter:shortener` | 需登录，风控较严 |
+| **Twitter / X** `twitter` | 视频 / 图文 | 6 | 单条 `twitter`、卡片 `twitter:card`、语音 Spaces `twitter:spaces`、广播 `twitter:broadcast`、Amplify `twitter:amplify`、短链 `twitter:shortener` | **需登录、风控较严（判断）** |
 | **Reddit** `reddit` | 视频 / 图文 | 1 | 单条 `reddit` | 只有单条入口 |
 | **Apple Podcasts** | 播客 | 1 | 单节目 `ApplePodcasts` | 见下方播客说明 |
 
