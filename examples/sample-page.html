@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="kb-template-version" content="1.1.0">
+<title>姿态表示：欧拉角与四元数</title>
+<style>
+  :root {
+    --bg: #f7f8fa; --card: #ffffff; --text: #1f2329; --muted: #646a73; --line: #e5e6eb;
+    --brand: #2b6cb0; --brand-soft: #eaf2fb; --warn: #b7791f; --warn-soft: #fdf6e3;
+    --ok: #2f855a; --ok-soft: #eef7f0; --code-bg: #282c34; --code-text: #abb2bf; --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; line-height: 1.75; }
+  .topbar { background: var(--card); border-bottom: 1px solid var(--line); padding: 8px 24px; font-size: 13px; color: var(--muted); }
+  .topbar a { color: var(--brand); text-decoration: none; }
+  .topbar a:hover { text-decoration: underline; }
+  .container { max-width: 860px; margin: 0 auto; padding: 32px 24px 96px; }
+  header.meta { margin-bottom: 24px; }
+  h1 { font-size: 28px; line-height: 1.4; margin-bottom: 10px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .tag { font-size: 12px; padding: 2px 10px; border-radius: 999px; background: var(--brand-soft); color: var(--brand); }
+  .tag.diff { background: var(--ok-soft); color: var(--ok); }
+  .meta-line { font-size: 13px; color: var(--muted); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 24px; margin: 20px 0; }
+  .card h2 { font-size: 18px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .card h2 .no { font-size: 13px; background: var(--brand); color: #fff; width: 24px; height: 24px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .summary { background: var(--ok-soft); border-left: 4px solid var(--ok); border-radius: 6px; padding: 16px 20px; margin: 20px 0; font-size: 15px; }
+  .summary strong { color: var(--ok); }
+  nav#toc { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 24px; margin: 20px 0; font-size: 14px; }
+  nav#toc ul { list-style: none; }
+  nav#toc ul ul { padding-left: 20px; }
+  nav#toc a { color: var(--brand); text-decoration: none; }
+  nav#toc a:hover { text-decoration: underline; }
+  h3 { font-size: 17px; margin: 24px 0 10px; }
+  p { margin: 10px 0; }
+  ul, ol { margin: 10px 0 10px 24px; }
+  li { margin: 4px 0; }
+  pre { background: var(--code-bg); color: var(--code-text); border-radius: 8px; padding: 14px 16px; font-family: "Cascadia Code", Consolas, monospace; font-size: 13px; line-height: 1.6; overflow-x: auto; margin: 12px 0; }
+  code.inline { background: var(--brand-soft); color: var(--brand); padding: 1px 6px; border-radius: 4px; font-family: "Cascadia Code", Consolas, monospace; font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
+  th, td { border: 1px solid var(--line); padding: 8px 12px; text-align: left; }
+  th { background: var(--brand-soft); color: var(--brand); font-weight: 600; }
+  tr:nth-child(even) td { background: #fafbfc; }
+  .callout { border-radius: 8px; padding: 12px 16px; margin: 14px 0; font-size: 14px; }
+  .callout.warn { background: var(--warn-soft); border-left: 4px solid var(--warn); }
+  .callout.tip { background: var(--brand-soft); border-left: 4px solid var(--brand); }
+  details { border: 1px solid var(--line); border-radius: 8px; margin: 8px 0; background: var(--card); }
+  details summary { cursor: pointer; padding: 12px 16px; font-weight: 600; font-size: 14px; list-style: none; }
+  details summary::before { content: "▸ "; color: var(--brand); }
+  details[open] summary::before { content: "▾ "; }
+  details .qa-body { padding: 0 16px 14px; font-size: 14px; }
+  footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+  .sample-note { background: var(--warn-soft); border-left: 4px solid var(--warn); border-radius: 6px; padding: 12px 16px; margin: 16px 0; font-size: 13px; }
+  @media (max-width: 640px) {
+    .container { padding: 24px 16px 96px; }
+    h1 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">&larr; <a href="../README.md">返回项目说明</a> ｜ 知识库 / 飞控基础</div>
+
+<div class="container">
+
+<div class="sample-note">
+  <strong>这是样例页</strong>，用于展示按本仓库页面规范生成的成品长什么样。内容为公开技术知识，不含任何受版权保护的素材。
+</div>
+
+<header class="meta">
+  <h1>姿态表示：欧拉角与四元数</h1>
+  <div class="tags">
+    <span class="tag">飞控基础</span>
+    <span class="tag">姿态解算</span>
+    <span class="tag diff">难度 ★★☆</span>
+  </div>
+  <div class="meta-line">学习日期：2026-08-28 ｜ 素材来源：公开技术文档 ｜ 预计阅读：6 分钟</div>
+</header>
+
+<div class="summary">
+  <strong>一句话总结：</strong>欧拉角直观但存在万向节死锁，四元数无奇异且便于插值；飞控内部姿态解算用四元数，人机交互与地面站显示用欧拉角。
+</div>
+
+<nav id="toc">
+  <strong>知识地图</strong>
+  <ul>
+    <li><a href="#s1">1. 为什么需要三种姿态表示</a></li>
+    <li><a href="#s2">2. 欧拉角：直观的代价</a></li>
+    <li><a href="#s3">3. 四元数：工程上的实际选择</a></li>
+    <li><a href="#s4">4. 易混点与误区</a></li>
+    <li><a href="#s5">5. 自测题</a></li>
+  </ul>
+</nav>
+
+<div class="card" id="s1">
+  <h2><span class="no">1</span>为什么需要三种姿态表示</h2>
+  <p>描述机体相对地理系的朝向，自由度只有三个，但表达方式不止一种。选择哪种，取决于你拿它做什么：</p>
+  <ul>
+    <li><strong>欧拉角</strong>——三次有序旋转，三个数，符合人的直觉，适合<em>看</em></li>
+    <li><strong>四元数</strong>——四个数加一个单位约束，无奇异点，适合<em>算</em></li>
+    <li><strong>旋转矩阵</strong>——九个元素六个约束，冗余但可直接做坐标变换</li>
+  </ul>
+  <p>工程上不是三选一，而是各司其职：估计器内部用四元数，输出给地面站和日志时转成欧拉角。</p>
+</div>
+
+<div class="card" id="s2">
+  <h2><span class="no">2</span>欧拉角：直观的代价</h2>
+  <p>航空领域常用 Z-Y-X 次序（先偏航、再俯仰、后横滚），记为 321 旋转。它的代价是奇异性。</p>
+  <table>
+    <tr><th>维度</th><th>欧拉角</th><th>四元数</th></tr>
+    <tr><td>参数个数</td><td>3</td><td>4（含单位约束）</td></tr>
+    <tr><td>奇异性</td><td>pitch 为 ±90° 时死锁</td><td>无</td></tr>
+    <tr><td>旋转合成</td><td>不能直接相加</td><td>四元数乘法</td></tr>
+    <tr><td>插值</td><td>线性插值不均匀</td><td>支持球面插值 slerp</td></tr>
+    <tr><td>归一化代价</td><td>不适用</td><td>四个数归一化</td></tr>
+  </table>
+  <div class="callout tip"><strong>提示：</strong>旋转次序一旦改变，同一组角度对应的姿态就完全不同。看到一组欧拉角，先问清楚它用的是什么次序——这是跨工具交换姿态数据时最常见的坑。</div>
+</div>
+
+<div class="card" id="s3">
+  <h2><span class="no">3</span>四元数：工程上的实际选择</h2>
+  <p>主流飞控的姿态估计器（如 EKF）内部以四元数维护状态，每步更新后归一化。输出给地面站或日志时再转换为欧拉角供人阅读。</p>
+  <p>这么做有两个实际好处：一是避开奇异点，飞行器做大幅机动时不会出现解算崩溃；二是数值上更省——四个数归一化，比九元素矩阵做正交化便宜得多。</p>
+  <div class="callout warn"><strong>注意：</strong>归一化是必须的，不是可选项。数值积分会持续引入误差，长时间不归一化的四元数会逐渐偏离单位长度，导致旋转结果出现缩放失真。</div>
+</div>
+
+<div class="card" id="s4">
+  <h2><span class="no">4</span>易混点与误区</h2>
+  <table>
+    <tr><th>常见误区</th><th>真相</th></tr>
+    <tr><td>四元数比欧拉角精度更高</td><td>表示精度相当。四元数的优势在无奇异与数值稳定，以及归一化比矩阵正交化省算力</td></tr>
+    <tr><td>两个欧拉角可以直接相加</td><td>旋转是有序的，必须先转成四元数或旋转矩阵再合成</td></tr>
+    <tr><td>yaw 在 ±180° 附近跳动就是死锁</td><td>那是角度环绕，做归一化即可；与万向节死锁是两回事</td></tr>
+    <tr><td>欧拉角一无是处</td><td>调参、看日志、人工判读时，三个角度比四个数直观得多，该用就用</td></tr>
+  </table>
+</div>
+
+<div class="card" id="s5">
+  <h2><span class="no">5</span>自测题（点击展开答案）</h2>
+  <details>
+    <summary>Q1：先 yaw 90° 再 pitch 90°，与先 pitch 90° 再 yaw 90°，最终姿态相同吗？</summary>
+    <div class="qa-body">不同。欧拉角是三次<strong>有序</strong>旋转，绕轴顺序改变结果就改变。这也正是它不能直接相加的根本原因——相加隐含了"次序无关"这个错误假设。</div>
+  </details>
+  <details>
+    <summary>Q2：为什么 pitch 接近 ±90° 时，日志里的 yaw 会剧烈跳动？</summary>
+    <div class="qa-body">万向节死锁。此时 roll 轴与 yaw 轴重合，丢失一个自由度，yaw 失去独立意义，解算出的值变得极不稳定。这是欧拉角固有的奇异点，不是传感器或算法故障。</div>
+  </details>
+  <details>
+    <summary>Q3：四元数为什么要反复归一化？</summary>
+    <div class="qa-body">数值积分每一步都引入截断误差，四元数模长会逐渐偏离 1。模长不为 1 的四元数表示的旋转会附带缩放，姿态解算结果失真。归一化是把它拉回单位长度的必要步骤。</div>
+  </details>
+  <details>
+    <summary>Q4：什么情况下应该优先用欧拉角？</summary>
+    <div class="qa-body">需要人来读的时候：调参时判断俯仰角是否超限位、看日志排查姿态异常、地面站显示。以及不会接近奇异点的常规飞行场景。工程实践是"算用四元数，看用欧拉角"。</div>
+  </details>
+</div>
+
+<footer>
+  由 AI 辅助整理 ｜ 素材来源：公开技术文档 ｜ 本文档单文件可离线阅读
+  <br>本文件是 knowledge-gatekeeper 的样例产出，模板版本 1.1.0
+</footer>
+
+</div>
+
+</body>
+</html>
