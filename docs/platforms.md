@@ -75,8 +75,8 @@
 | 平台 | 类型 | 提取器数 | 主要入口（能力） | 限制 |
 |---|---|---|---|---|
 | **喜马拉雅** `ximalaya` | 音频 / 播客 | 2 | 单条 `ximalaya`、专辑 `ximalaya:album` | 付费专辑见红线 3 |
-| **网易云音乐** `netease` | 音乐 / 电台 | 7 | 歌曲 `netease:song`、专辑 `netease:album`、MV `netease:mv`、歌单 `netease:playlist`、歌手 `netease:singer`、节目 `netease:program`、**电台 `netease:djradio`** | 音乐版权受限，多数仅可下 MV 或试听片段；**版权内容不碰**，见红线 3 |
-| **QQ 音乐** `qqmusic` | 音乐 | 6 | 歌曲 `qqmusic`、专辑 `qqmusic:album`、MV `qqmusic:mv`、歌单 `qqmusic:playlist`、歌手 `qqmusic:singer`、榜单 `qqmusic:toplist` | 同上，版权内容不碰 |
+| **网易云音乐** `netease` | 音乐 / 电台 | 7 | 歌曲 `netease:song`、专辑 `netease:album`、MV `netease:mv`、歌单 `netease:playlist`、歌手 `netease:singer`、节目 `netease:program`、**电台 `netease:djradio`** | 音乐版权受限，**多数仅可下 MV 或试听片段（判断）**；**版权内容不碰**，见红线 3 |
+| **QQ 音乐** `qqmusic` | 音乐 | 6 | 歌曲 `qqmusic`、专辑 `qqmusic:album`、MV `qqmusic:mv`、歌单 `qqmusic:playlist`、歌手 `qqmusic:singer`、榜单 `qqmusic:toplist` | **版权受限（判断）**，多数仅可下 MV 或试听片段；版权内容不碰，见红线 3 |
 | **蜻蜓 FM** `qingting` | 音频 / 播客 | 1 | 单条 `qingting` | 只有单条入口 |
 
 ### 海外
