@@ -1,0 +1,6 @@
+# SKILL.md 顶部的 YAML frontmatter 是 Agent Skill 的身份标识。
+# 格式化工具（保存时自动运行的那类）会把 name / description 当作
+# 非法 YAML 或多余内容删掉——一旦丢失，agent 就无法识别这个 skill。
+# 已被此类工具破坏过一次，故显式排除。
+SKILL.md
+templates/*.html
