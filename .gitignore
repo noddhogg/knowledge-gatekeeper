@@ -1,0 +1,37 @@
+# knowledge-gatekeeper
+#
+# 本仓库是纯内容（Skill + 文档 + 模板），没有构建步骤，所以这里不是
+# "别把编译产物提交上来"，而是"别把**你自己的配置与临时文件**提交上来"。
+
+# ---- 1. 本地配置 ----
+# config.example.json 是模板，要提交；你复制出来的 config.json 含本机绝对路径，不要提交。
+config.json
+
+# ---- 2. 编辑器与系统垃圾 ----
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# ---- 3. 知识库目录里建议 ignore 的 ----
+#
+# 下面这些路径**不属于本仓库**，它们位于你的 $KB_ROOT（见 config.example.json）。
+# 列在这里有两种用法：
+#   - 你把这个 skill 直接放在知识库目录里 → 这些规则当场生效
+#   - 你的知识库是独立仓库 → 把这一段复制到那个仓库的 .gitignore
+#
+# 理由见 SKILL.md 3.3「防丢闭环」：过程文件不进版本库，但**原始素材必须进**——
+# 未提交 = 不存在。别把这段规则理解成"整个 _incoming/ 都别管"。
+
+# 过程文件区：下载下来的媒体、转写中间稿。丢了可以重跑。
+_incoming/media/
+_incoming/trans/
+_incoming/tmp/
+
+# 快照与锁文件
+*.lock
+*.tmp
