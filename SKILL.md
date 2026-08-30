@@ -2,7 +2,7 @@
 name: knowledge-gatekeeper
 description: 个人知识库的治理层 / Governance layer for personal knowledge bases — turn what you saved but never read into something you actually read. 四档质量门禁、成页门禁（防注水）、单一账本增量、断点续跑、防丢闭环、页面结构规范、平台接入清单（集成获取，不做实现）。Triggers — knowledge base governance / quality gate / unread favorites / note triage / padding audit / 知识库治理 / 质量门禁 / 成页门禁 / 注水检测 / 素材定档 / 收藏精炼 / 知识库防丢 / 账本续跑 / 笔记入库审查 / 平台接入
 metadata:
-  version: 1.4.0
+  version: 1.4.1
 ---
 
 # knowledge-gatekeeper · 知识库治理层
