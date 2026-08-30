@@ -5,6 +5,9 @@
     "quality_reason 写「剥掉包装后剩下的是什么」——标题与内容不一致只是核查提示，",
     "不是定档理由（SKILL.md 3.1 / CONTRIBUTING 均明令禁止，曾误写进本文件的示例，已修正）。",
     "fail_reason 只记技术失败（获取/转写/成页），定不入库的原因写 quality_reason。",
+    "不变量：status=done 的条目必须已定档（quality 非空、且四档之一）并附 quality_reason。",
+    "  「未经定档不得入库」是硬规则（SKILL.md 3.1），这里用 schema 的 if/then 强制，",
+    "  免得它只是一条没人检查的散文约定。",
     "用法：把 example 节点复制为你的 $LEDGER 初始内容，schema 节点作为字段校验依据。"
   ],
 
@@ -54,14 +57,41 @@
             },
             "retry_count": { "type": "integer", "minimum": 0 },
             "updated_at": { "type": "string" }
-          }
+          },
+          "allOf": [
+            {
+              "comment": "不变量：已入库（done）⇒ 必定已定档。四档门禁零例外，未经定档不得入库（SKILL.md 3.1）。",
+              "if": {
+                "properties": { "status": { "const": "done" } },
+                "required": ["status"]
+              },
+              "then": {
+                "required": ["quality", "quality_reason"],
+                "properties": {
+                  "quality": { "enum": ["high", "medium", "low", "reject"] },
+                  "quality_reason": { "minLength": 1 }
+                }
+              }
+            },
+            {
+              "comment": "技术失败（failed）必须写明失败原因，否则重试时无从判断该换什么路径。",
+              "if": {
+                "properties": { "status": { "const": "failed" } },
+                "required": ["status"]
+              },
+              "then": {
+                "required": ["fail_reason"],
+                "properties": { "fail_reason": { "minLength": 1 } }
+              }
+            }
+          ]
         }
       }
     }
   },
 
   "example": {
-    "version": "1.1",
+    "version": "1.2",
     "updated_at": "2026-08-30T15:40:00+08:00",
     "items": [
       {
