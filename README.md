@@ -307,8 +307,10 @@ Two things to know before you start:
    拿到清单后与账本对比，**只处理新增的**。
 
 2. **建账本**（建一次，之后一直用）
-   每条素材一条记录，八个核心字段：`id` / `status` / `quality` / `media` /
-   `transcript` / `page` / `fail_reason` / `retry_count`。
+   每条素材一条记录，九个核心字段：`id` / `status` / `quality` / `quality_reason` /
+   `media` / `transcript` / `page` / `fail_reason` / `retry_count`。
+   其中 `quality_reason` 记**定档理由**（只写"剥掉包装后剩下的是什么"，不写包装本身），
+   `fail_reason` 只记技术失败——两者不要混用。
    完整定义（另有 `title` / `source_url` / `domain` 等）见
    [`examples/ledger.schema.json`](examples/ledger.schema.json)。
 
@@ -347,7 +349,7 @@ cp SKILL.md ~/.claude/skills/knowledge-gatekeeper/SKILL.md
 
    其他 Agent Skills 宿主同理，把 `SKILL.md` 放到它读取 skills 的目录即可。
 
-3. 自检：让 agent 复述四档判据和账本的八个核心字段。答得出来就说明加载成功。
+3. 自检：让 agent 复述四档判据和账本的九个核心字段。答得出来就说明加载成功。
 
 > 关于命令中的参数：`--flat-playlist`、`--skip-download`、`--cookies-from-browser`、`-x`
 > 均已确认存在于 `yt-dlp` 2026.06.09。但**命令形式是示意，不是复制即跑的脚本**——

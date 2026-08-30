@@ -190,9 +190,10 @@ description: 个人知识库的治理层 / Governance layer for personal knowled
 | `id` | 素材唯一标识，整条链路的主键 |
 | `status` | `pending` → `working` → `transcribed` → `done` / `failed` |
 | `quality` | `high` / `medium` / `low` / `reject`，由门禁写入 |
+| `quality_reason` | **定档理由，与 `quality` 同时写入**。只写「剥掉包装后剩下的是什么」，不写包装本身——标题与内容不一致是核查提示，不是定档理由。这是门禁可审计、可回溯的唯一依据，必填 |
 | `media` / `transcript` | 过程文件路径 |
 | `page` | 成页路径，`low` / `reject` 时留空 |
-| `fail_reason` / `retry_count` | 失败原因与重试次数 |
+| `fail_reason` / `retry_count` | **仅**技术失败（获取 / 转写 / 成页）的原因与重试次数。定不入库的原因写 `quality_reason`，不要塞进 `fail_reason` |
 
 **同一批次只允许一个进程写账本。** 并发写 JSON 会互相覆盖，这是最容易踩且最难排查的坑。
 

@@ -2,6 +2,9 @@
   "_readme": [
     "账本是整条管线的单一事实源。本文件同时给出结构定义与一个填充示例。",
     "硬约束：同一批次只允许一个进程写这个文件。并发写 JSON 会互相覆盖。",
+    "quality_reason 写「剥掉包装后剩下的是什么」——标题与内容不一致只是核查提示，",
+    "不是定档理由（SKILL.md 3.1 / CONTRIBUTING 均明令禁止，曾误写进本文件的示例，已修正）。",
+    "fail_reason 只记技术失败（获取/转写/成页），定不入库的原因写 quality_reason。",
     "用法：把 example 节点复制为你的 $LEDGER 初始内容，schema 节点作为字段校验依据。"
   ],
 
@@ -38,10 +41,17 @@
               "enum": ["", "high", "medium", "low", "reject"],
               "description": "由 D 阶段质量门禁写入。空串表示尚未定档。"
             },
+            "quality_reason": {
+              "type": "string",
+              "description": "定档理由，与 quality 同时写入。只写「剥掉包装后剩下的是什么」，不写包装本身——标题与内容不一致只是核查提示，不是定档理由（见 SKILL.md 3.1）。这条是门禁可审计、可回溯的唯一依据。"
+            },
             "media": { "type": "string", "description": "媒体文件路径，相对 $KB_ROOT" },
             "transcript": { "type": "string", "description": "转写稿路径，相对 $KB_ROOT" },
             "page": { "type": "string", "description": "成页路径，相对 $KB_ROOT。low / reject 时留空。" },
-            "fail_reason": { "type": "string" },
+            "fail_reason": {
+              "type": "string",
+              "description": "仅用于技术失败（获取/转写/成页失败），不是定档理由。定不入库的原因写 quality_reason，不要塞进这里。"
+            },
             "retry_count": { "type": "integer", "minimum": 0 },
             "updated_at": { "type": "string" }
           }
@@ -51,8 +61,8 @@
   },
 
   "example": {
-    "version": "1.0",
-    "updated_at": "2026-08-28T16:00:00+08:00",
+    "version": "1.1",
+    "updated_at": "2026-08-30T15:40:00+08:00",
     "items": [
       {
         "id": "SRC-20260820-001",
@@ -61,6 +71,7 @@
         "domain": "01_示例域",
         "status": "done",
         "quality": "high",
+        "quality_reason": "通读后能复述出 5 个具体可上手的操作步骤，且每一步都有论据；冗余占比低",
         "media": "_incoming/media/SRC-20260820-001.mp4",
         "transcript": "_incoming/trans/SRC-20260820-001.trans.txt",
         "page": "01_示例域/某个主题/2026-08-20_某个讲清楚的体系化教程.html",
@@ -75,10 +86,11 @@
         "domain": "01_示例域",
         "status": "done",
         "quality": "low",
+        "quality_reason": "剥掉耸动包装后无可复用知识：通读后复述不出 3 个可验证知识点，中后段全为引流广告。（标题唬人本身不扣分，只用来提醒重点核查）",
         "media": "_incoming/media/SRC-20260820-002.mp4",
         "transcript": "_incoming/trans/SRC-20260820-002.trans.txt",
         "page": "",
-        "fail_reason": "标题与内容不一致，中后段为引流广告",
+        "fail_reason": "",
         "retry_count": 0,
         "updated_at": "2026-08-21T10:40:00+08:00"
       },
@@ -89,6 +101,7 @@
         "domain": "",
         "status": "failed",
         "quality": "",
+        "quality_reason": "",
         "media": "",
         "transcript": "",
         "page": "",
